@@ -1,0 +1,18 @@
+{
+  "name": "mori-focus",
+  "version": "0.6.3",
+  "description": "森日 Mori — 桌面上的專注夥伴",
+  "private": true,
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test --test-isolation=none tests/*.test.cjs",
+    "smoke": "node scripts/smoke.cjs",
+    "check:ui": "node scripts/ui-polish-check.cjs",
+    "package": "node scripts/package.cjs"
+  },
+  "devDependencies": {
+    "electron": "^42.0.0",
+    "playwright-core": "^1.63.0"
+  }
+}

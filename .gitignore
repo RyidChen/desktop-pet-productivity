@@ -1,0 +1,36 @@
+node_modules/
+.npm-cache/
+.electron-cache/
+dist/
+.test-data/
+artifacts/
+*.log
+
+# Local configuration, credentials, editor and agent state
+.env
+.env.*
+!.env.example
+.codex/
+.agents/
+.vscode/
+.idea/
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+state.json
+state.backup.json
+state.corrupt-*
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
+
+# Generated asset previews are not runtime inputs
+src/ui/assets/*.preview.jpg
+
+# User-provided music: distribution rights have not been confirmed
+src/ui/assets/music/*.mp3
+src/ui/assets/music/cafe-afternoon-glow.wav

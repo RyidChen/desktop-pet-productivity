@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'"><title>森日 · 專注小屋</title><link rel="stylesheet" href="styles.css"></head>
+<body class="panel-page">
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4C9 1 3 8 5 15s13 5 15-11Z"/><path d="m5 21 9-12M8 16l-1-5M11 13h5"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M16 5v14"/></symbol>
+<symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+<symbol id="i-music" viewBox="0 0 24 24"><path d="M9 17V5l11-2v12M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="3"/><ellipse cx="17" cy="16" rx="3" ry="3"/></symbol>
+<symbol id="i-rain" viewBox="0 0 24 24"><path d="M5 14a4 4 0 0 1-1-8 6 6 0 0 1 11-1 4.5 4.5 0 0 1 3 9M7 17l-1 3M12 16l-1 3M17 17l-1 3"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 19V5h7l2 3h9v11Z"/><path d="M12 11v5m-2-2 2 2 2-2"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="i-tune" viewBox="0 0 24 24"><path d="M4 7h5m5 0h6M4 17h10m5 0h1M9 4v6M14 14v6"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="m4 16 12-12 4 4-12 12-5 1Z M14 6l4 4"/></symbol>
+<symbol id="i-shirt" viewBox="0 0 24 24"><path d="m8 3-6 4 3 5 3-2v11h8V10l3 2 3-5-6-4c0 4-8 4-8 0Z"/></symbol>
+</defs></svg>
+<main class="panel-shell">
+  <header class="panel-header"><div class="brand-row"><div class="brand"><span class="brand-mark"><svg class="icon"><use href="#i-leaf"/></svg></span><div><h1>森日 <span>MORI</span></h1><p id="companion-status">森森在這裡陪你</p></div></div><button id="collapse" class="icon-button" title="收合面板（Esc）" aria-label="收合面板"><svg class="icon"><use href="#i-minus"/></svg></button></div>
+  <div class="presence-bar"><label for="presence">陪伴方式</label><select id="presence"><option value="companion">互動陪伴</option><option value="focus">安靜陪伴</option><option value="quiet">隱藏角色與提醒</option></select><button id="pin-panel" class="small-button" aria-pressed="false" title="讓專注小屋保持在其他視窗上方">釘選</button></div>
+  <div id="compact-timer" hidden><span id="compact-time"></span><button id="compact-toggle" class="small-button">開始</button></div>
+  <p id="presence-help" class="helper-text" hidden></p></header>
+  <div class="panel-content">
+  <section class="timer-card" aria-label="番茄鐘">
+    <div class="timer-top"><div class="segmented" aria-label="計時模式"><button id="mode-focus" aria-pressed="true">專注</button><button id="mode-break" aria-pressed="false">休息</button></div><button id="duration-toggle" class="icon-button" title="調整時間" aria-label="調整時間" aria-expanded="false"><svg class="icon"><use href="#i-tune"/></svg></button></div>
+    <form id="duration-form" class="duration-form" hidden><label>專注（分）<input id="focus-duration" type="number" min="1" max="180" value="25" required></label><label>休息（分）<input id="break-duration" type="number" min="1" max="180" value="5" required></label><button class="small-button" type="submit">套用</button></form>
+    <p class="timer-eyebrow" id="timer-eyebrow">一小步，也是在前進</p>
+    <div id="time" role="timer" aria-label="剩餘時間">25<span>:</span>00</div>
+    <p class="current-task" id="current-task">留白，也可以是今天的開始</p>
+    <div class="timer-controls"><button id="start" class="primary-button"><svg class="icon"><use href="#i-play"/></svg><span>開始專注</span></button><button id="reset" class="icon-button reset-button" title="重設本輪時間" aria-label="重設本輪時間"><svg class="icon"><use href="#i-reset"/></svg></button></div>
+    <button id="quick-start" class="quick-start">先做 5 分鐘就好</button>
+    <div class="timer-progress" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
+  </section>
+  <section class="tasks-section" aria-labelledby="tasks-heading"><div class="section-heading"><h2 id="tasks-heading">今天的小事 <span id="task-count">0 / 0</span></h2><button id="tasks-toggle" class="text-button" aria-expanded="false" aria-controls="task-list" hidden>查看全部</button></div><form id="task-form"><label class="sr-only" for="task-input">新增待辦事項</label><input id="task-input" maxlength="120" placeholder="想完成什麼呢？" autocomplete="off" required><button class="icon-button" type="submit" aria-label="新增待辦"><svg class="icon"><use href="#i-plus"/></svg></button></form><ul id="task-list"></ul><p id="empty-tasks">把腦袋裡的小事，輕輕放在這裡。</p></section>
+  <details id="sound-settings" class="sounds-section"><summary>讓世界輕一點 <span>音樂與背景音</span></summary>
+    <div class="sound-row"><span class="sound-icon music-icon"><svg class="icon"><use href="#i-music"/></svg></span><div class="sound-details"><div class="sound-title"><label for="music-source">音樂</label><select id="music-source" aria-label="音樂來源"><option value="builtin">午後窗邊</option><option value="cafe">貓咪咖啡館 · 輕鬆</option><option value="reading">書頁之間 · 閱讀</option><option value="forest">森林散步 · 輕鬆</option><option value="night">深夜小燈 · 專注</option><option value="station">微光車站 · Lo-fi</option><option value="seaside">海鹽假日 · Bossa Nova</option><option value="garden">月下庭院 · 靜謐</option><option value="local" disabled>我的音樂</option></select><span id="music-title" hidden>午後窗邊</span></div><label class="sr-only" for="music-volume">音樂音量</label><input id="music-volume" type="range" min="0" max="100" value="45"></div><button id="music-toggle" class="icon-button sound-toggle" aria-label="播放輕音樂" aria-pressed="false"><svg class="icon"><use href="#i-play"/></svg></button></div>
+    <label class="music-mode-label" for="music-mode">播放方式<select id="music-mode"><option value="repeat">單曲循環</option><option value="shuffle">隨機播放</option><option value="sequence">依序播放</option></select></label>
+    <div class="sound-row"><span class="sound-icon rain-icon"><svg class="icon"><use href="#i-rain"/></svg></span><div class="sound-details"><div class="sound-title"><label for="background-source">背景音</label><select id="background-source" aria-label="背景音種類"><option value="rain">窗外小雨</option><option value="brown">棕噪音 · 低沉</option><option value="pink">粉紅噪音 · 柔和</option><option value="ocean">海浪 · 合成</option></select></div><label class="sr-only" for="rain-volume">背景音音量</label><input id="rain-volume" type="range" min="0" max="100" value="30"></div><button id="rain-toggle" class="icon-button sound-toggle" aria-label="播放背景音" aria-pressed="false"><svg class="icon"><use href="#i-play"/></svg></button></div>
+    <div class="sound-footer"><button id="import-music" class="text-button"><svg class="icon"><use href="#i-folder"/></svg>匯入自己的音樂</button><label class="chime-option"><input id="chime" type="checkbox" checked>完成提示音</label></div>
+  </details>
+  <div class="memory-preview"><button id="memory-leaf" class="icon-button" aria-label="打開我們的小小回憶" aria-controls="memory-book" title="翻開回憶冊"><svg class="icon"><use href="#i-leaf"/></svg></button><details id="memory-book" class="memory-card"><summary><span id="memory-heading">我們的小小回憶</span><span id="together-days"></span><small id="memory-latest">等一片新葉子</small></summary><p id="memory-message">第一片葉子，從一小段專注開始。</p><div id="memories" class="memories"></div></details></div>
+  </div>
+  <footer class="panel-footer"><div class="stats-footer"><div><span class="stat-number" id="minutes">0</span><span class="stat-label">今日專注分鐘</span></div><span class="stat-divider"></span><div><span class="stat-number" id="rounds">0</span><span class="stat-label">完成番茄鐘</span></div></div>
+  <div class="day-actions"><button id="finish-day" class="small-button">今天先到這裡</button><button id="hide-pet" class="text-button" title="也可按 Ctrl+Alt+M；從系統匣可再次顯示">暫時隱藏</button></div>
+  <p id="day-review" class="day-review" role="status" hidden></p>
+  <div id="undo-timer-bar" hidden><span role="status">本輪已調整，可在 8 秒內復原。</span><button id="undo-timer" class="small-button">復原計時</button></div>
+  <div id="undo-delete-bar" hidden><span id="undo-delete-message" role="status"></span><button id="undo-delete" class="small-button">復原</button></div>
+  <p id="error" role="alert" hidden></p><div id="toast" role="status" hidden></div></footer>
+</main>
+<dialog id="character-dialog" aria-labelledby="character-heading">
+  <div class="character-heading"><h2 id="character-heading">陪森森一下</h2><button id="character-close" class="small-button" aria-label="關閉衣櫥與互動">關閉</button></div>
+  <p class="helper-text">換件衣服，或分享一點小日常。</p>
+  <div class="outfit-previews" role="group" aria-label="服裝預覽"><button type="button" data-outfit="classic" aria-pressed="true"><span class="outfit-picture classic"></span><span>經典森綠服</span></button><button type="button" data-outfit="cozy" aria-pressed="false"><span class="outfit-picture cozy"></span><span>奶油居家服</span></button><button type="button" data-outfit="outing" aria-pressed="false"><span class="outfit-picture outing"></span><span>午後外出服</span></button></div>
+  <label class="outfit-label" for="outfit">今天穿什麼<select id="outfit"><option value="classic">經典森綠服</option><option value="cozy">奶油居家服</option><option value="outing">午後外出服</option></select></label>
+  <div class="character-interactions"><button class="small-button" data-pet-interaction="snack">小點心</button><button class="small-button" data-pet-interaction="play">逗逗森森</button><button class="small-button" data-pet-interaction="rest" title="讓森森小憩，計時繼續">休息一下</button></div>
+  <p class="helper-text">摸摸頭也會有回應。森森小憩時，計時會繼續。</p>
+  <p id="character-feedback" role="status">森森準備好陪你了。</p>
+</dialog>
+<dialog id="guide-dialog" aria-labelledby="guide-heading">
+  <div class="character-heading"><h2 id="guide-heading">和森森一起開始</h2><button id="guide-close" class="small-button">略過</button></div>
+  <p>不用一次做很多，先完成一小步就好。</p>
+  <ol class="guide-steps"><li><strong>開啟專注小屋</strong><span>按森森右下的葉子，或雙擊角色。</span></li><li><strong>放下一件小事</strong><span>輸入待辦後，點它的名稱選為目前任務；鉛筆可以修改文字。</span></li><li><strong>先做 5 分鐘</strong><span>按「先做 5 分鐘就好」。結束後由你決定何時休息。</span></li><li><strong>隨時找回森森</strong><span>按 Ctrl+Alt+M 或到系統匣點小貓。隱藏角色與提醒時，請在面板切回陪伴。</span></li></ol>
+  <label class="mini-option"><input id="mini-timer-setting" type="checkbox" checked>顯示桌邊倒數與暫停按鈕</label>
+  <p class="guide-note">收合面板後，計時與音樂繼續。資料保存在這台電腦，不需要帳號。右上「使用說明」可重看。</p>
+  <button id="guide-done" class="primary-button">知道了，開始吧</button>
+</dialog>
+<dialog id="edit-task-dialog" aria-labelledby="edit-task-heading"><form id="edit-task-form"><h2 id="edit-task-heading">修改小事</h2><label for="edit-task-input">待辦名稱</label><input id="edit-task-input" maxlength="120" required autocomplete="off"><p id="edit-task-error" role="alert" hidden></p><div class="dialog-actions"><button id="edit-task-cancel" type="button" class="small-button">取消</button><button type="submit" class="primary-button">儲存</button></div></form></dialog>
+<script src="audio.js"></script><script src="panel.js"></script></body></html>

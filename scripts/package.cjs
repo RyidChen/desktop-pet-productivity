@@ -1,0 +1,25 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const folder = process.argv.includes('--side-by-side') ? `Mori Focus ${require('../package.json').version}` : 'Mori Focus';
+const target = path.join(root, 'dist', folder);
+const electron = path.join(root, 'node_modules', 'electron', 'dist');
+if (!fs.existsSync(path.join(electron, 'electron.exe'))) throw new Error('Electron 執行檔尚未下載。請先執行 npm install，再執行 node node_modules/electron/install.js。');
+// Only copy build inputs; never copy the workspace, local data or dependencies into the app.
+fs.mkdirSync(target, { recursive: true });
+fs.cpSync(electron, target, { recursive: true, filter: source => path.basename(source) !== 'default_app.asar' });
+fs.renameSync(path.join(target, 'electron.exe'), path.join(target, 'Mori.exe'));
+const appDir = path.join(target, 'resources', 'app');
+fs.mkdirSync(appDir, { recursive: true });
+fs.cpSync(path.join(root, 'src'), path.join(appDir, 'src'), { recursive: true });
+const { name, version, description, main } = require('../package.json');
+fs.writeFileSync(path.join(appDir, 'package.json'), JSON.stringify({ name, version, description, main }, null, 2));
+fs.copyFileSync(path.join(root, 'README.md'), path.join(target, 'README.md'));
+fs.mkdirSync(path.join(target, 'docs'), { recursive: true });
+fs.copyFileSync(path.join(root, 'docs', 'verification.md'), path.join(target, 'docs', 'verification.md'));
+fs.copyFileSync(path.join(root, 'docs', 'reading-assets.md'), path.join(target, 'docs', 'reading-assets.md'));
+fs.copyFileSync(path.join(root, 'docs', 'character-assets.md'), path.join(target, 'docs', 'character-assets.md'));
+fs.copyFileSync(path.join(root, 'docs', 'cafe-audio.md'), path.join(target, 'docs', 'cafe-audio.md'));
+fs.copyFileSync(path.join(root, 'docs', 'background-audio.md'), path.join(target, 'docs', 'background-audio.md'));
+fs.writeFileSync(path.join(target, 'Start Mori.cmd'), '@echo off\r\nset ELECTRON_RUN_AS_NODE=\r\nstart "" "%~dp0Mori.exe"\r\n');
+console.log(`Portable app: ${path.join(target, 'Mori.exe')}`);
