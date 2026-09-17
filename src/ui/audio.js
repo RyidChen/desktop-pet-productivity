@@ -108,9 +108,9 @@ class MoriAudio {
         this.localPath = filePath;
       }
       buffer = this.localBuffer;
-    } else if (['cafe', 'reading', 'night', 'forest', 'station', 'seaside', 'garden'].includes(source)) {
+    } else if (['cafe', 'reading', 'night', 'forest', 'station', 'seaside', 'garden', 'greenhouse', 'clouds', 'maple', 'space', 'bamboo'].includes(source)) {
       if (!this.trackBuffer || this.trackSource !== source) {
-        const files = { cafe: 'cafe-afternoon-glow.wav', reading: 'between-pages.mp3', night: 'night-lamp.mp3', forest: 'forest-walk.mp3', station: 'glow-station.mp3', seaside: 'seaside-holiday.mp3', garden: 'moonlit-garden.mp3' };
+        const files = { cafe: 'cafe-afternoon-glow.wav', reading: 'between-pages.mp3', night: 'night-lamp.mp3', forest: 'forest-walk.mp3', station: 'glow-station.mp3', seaside: 'seaside-holiday.mp3', garden: 'moonlit-garden.mp3', greenhouse: 'greenhouse.mp3', clouds: 'clouds.mp3', maple: 'maple.mp3', space: 'space.mp3', bamboo: 'bamboo.mp3' };
         const response = await fetch(`assets/music/${files[source]}`);
         if (!response.ok) throw new Error('這首音樂暫時無法載入，請改選其他音樂。');
         const decoded = await this.context.decodeAudioData(await response.arrayBuffer());

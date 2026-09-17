@@ -181,7 +181,7 @@ function render(s) {
   $('#chime').checked = s.settings.chime;
   $('#music-source option[value=local]').disabled = !s.settings.musicPath;
   $('#music-source').value = s.settings.musicSource === 'local' && !s.settings.musicPath ? 'builtin' : s.settings.musicSource;
-  $('#music-title').textContent = $('#music-source').value === 'local' ? s.settings.musicPath.split(/[\\/]/).pop() || '我的音樂' : ({ cafe: '貓咪咖啡館', reading: '書頁之間', night: '深夜小燈', forest: '森林散步', station: '微光車站', seaside: '海鹽假日', garden: '月下庭院' }[$('#music-source').value] || '午後窗邊');
+  $('#music-title').textContent = $('#music-source').value === 'local' ? s.settings.musicPath.split(/[\\/]/).pop() || '我的音樂' : ({ cafe: '貓咪咖啡館', reading: '書頁之間', night: '深夜小燈', forest: '森林散步', station: '微光車站', seaside: '海鹽假日', garden: '月下庭院', greenhouse: '雨後花房', clouds: '雲端漂流', maple: '楓糖小屋', space: '星際慢車', bamboo: '竹影茶間' }[$('#music-source').value] || '午後窗邊');
   $('#music-title').title = $('#music-title').textContent;
   $('#music-title').hidden = $('#music-source').value !== 'local';
   audio.setVolumes({ ...s.settings, musicVolume: Number($('#music-volume').value) / 100, rainVolume: Number($('#rain-volume').value) / 100 });

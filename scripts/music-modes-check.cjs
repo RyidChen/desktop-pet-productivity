@@ -27,6 +27,24 @@ async function panelPage(app) {
     let panel = await panelPage(app);
     const errors = []; panel.on('pageerror', e => errors.push(e.message));
     await panel.locator('#sound-settings summary').click();
+    const newTracks = [];
+    for (const source of ['greenhouse', 'clouds', 'maple', 'space', 'bamboo']) {
+      await panel.locator('#music-source').selectOption(source);
+      await panel.locator('#music-toggle').click();
+      await panel.waitForFunction(s => audio.trackSource === s && Boolean(audio.musicNode), source);
+      const metrics = await panel.evaluate(() => {
+        const b = audio.musicNode.buffer;
+        let peak=0, energy=0;
+        for(let c=0;c<b.numberOfChannels;c++) for(const v of b.getChannelData(c)) { peak=Math.max(peak,Math.abs(v));energy+=v*v; }
+        return {source:audio.trackSource,duration:b.duration,peak,rms:Math.sqrt(energy/(b.length*b.numberOfChannels)),first:b.getChannelData(0)[0],last:b.getChannelData(0).at(-1),loop:audio.musicNode.loop};
+      });
+      assert.ok(metrics.duration>20 && metrics.rms>0 && metrics.rms<=.101 && metrics.peak<=.851);
+      assert.equal(Math.abs(metrics.first),0); assert.equal(Math.abs(metrics.last),0); assert.equal(metrics.loop,true);
+      newTracks.push(metrics);
+      await panel.locator('#music-toggle').click();
+    }
+    fs.writeFileSync(path.join(root,'artifacts','five-tracks-results.json'),JSON.stringify(newTracks,null,2));
+    await panel.locator('#music-source').selectOption('builtin');
     // Shorten decoded test buffers so real native ended events run without waiting minutes.
     await panel.evaluate(async () => {
       await audio.prime();
@@ -48,8 +66,8 @@ async function panelPage(app) {
     await panel.evaluate(() => { window.testCurrentNode = audio.musicNode; });
     await panel.waitForTimeout(1200);
     assert.equal(await panel.evaluate(() => audio.musicNode === window.testCurrentNode && audio.musicNode.loop), true, 'mode switch preserves the playing node and repeat stays on it');
-    await panel.locator('#music-source').selectOption('garden');
-    await panel.waitForFunction(() => audio.trackSource === 'garden' && Boolean(audio.musicNode));
+    await panel.locator('#music-source').selectOption('bamboo');
+    await panel.waitForFunction(() => audio.trackSource === 'bamboo' && Boolean(audio.musicNode));
     await panel.locator('#music-mode').selectOption('sequence');
     await panel.waitForFunction(() => document.querySelector('#music-source').value === 'builtin' && Boolean(audio.musicNode));
     await panel.locator('#music-mode').selectOption('repeat');

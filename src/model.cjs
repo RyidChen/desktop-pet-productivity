@@ -19,7 +19,7 @@ class FocusModel {
       musicMode: ['shuffle', 'sequence'].includes(settings.musicMode) ? settings.musicMode : 'repeat',
       chime: settings.chime !== false,
       musicPath: typeof settings.musicPath === 'string' ? settings.musicPath : '',
-      musicSource: ['local', 'cafe', 'reading', 'night', 'forest', 'station', 'seaside', 'garden'].includes(settings.musicSource) ? settings.musicSource : 'builtin',
+      musicSource: ['local', 'cafe', 'reading', 'night', 'forest', 'station', 'seaside', 'garden', 'greenhouse', 'clouds', 'maple', 'space', 'bamboo'].includes(settings.musicSource) ? settings.musicSource : 'builtin',
       presence: ['companion', 'focus', 'quiet'].includes(settings.presence) ? settings.presence : 'companion',
       panelPinned: settings.panelPinned === true,
       guideSeen: settings.guideSeen === true,
@@ -196,7 +196,7 @@ class FocusModel {
           break;
         }
         if (payload.key === 'musicSource') {
-          if (!['local', 'builtin', 'cafe', 'reading', 'night', 'forest', 'station', 'seaside', 'garden'].includes(payload.value)) throw new Error('音樂來源無效。');
+          if (!['local', 'builtin', 'cafe', 'reading', 'night', 'forest', 'station', 'seaside', 'garden', 'greenhouse', 'clouds', 'maple', 'space', 'bamboo'].includes(payload.value)) throw new Error('音樂來源無效。');
         } else if (payload.key === 'chime' ? typeof payload.value !== 'boolean' : !Number.isFinite(payload.value) || payload.value < 0 || payload.value > 1) throw new Error('音量設定無效。');
         this.settings[payload.key] = payload.value;
         break;

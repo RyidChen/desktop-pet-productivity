@@ -138,7 +138,7 @@ async function findPage(app, filename) {
     await pet.mouse.move(1, 1);
     await panel.locator('#sound-settings summary').click();
     const tracks = [];
-    for (const [source, title] of [['reading', '書頁之間'], ['forest', '森林散步'], ['night', '深夜小燈'], ['station', '微光車站'], ['seaside', '海鹽假日'], ['garden', '月下庭院']]) {
+    for (const [source, title] of [['reading', '書頁之間'], ['forest', '森林散步'], ['night', '深夜小燈'], ['station', '微光車站'], ['seaside', '海鹽假日'], ['garden', '月下庭院'], ['greenhouse', '雨後花房'], ['clouds', '雲端漂流'], ['maple', '楓糖小屋'], ['space', '星際慢車'], ['bamboo', '竹影茶間']]) {
       await panel.locator('#music-source').selectOption(source);
       await panel.locator('#music-toggle').click();
       await panel.waitForFunction(() => document.querySelector('#music-toggle').getAttribute('aria-pressed') === 'true');

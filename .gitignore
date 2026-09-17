@@ -31,6 +31,20 @@ Thumbs.db
 # Generated asset previews are not runtime inputs
 src/ui/assets/*.preview.jpg
 
-# User-provided music: distribution rights have not been confirmed
-src/ui/assets/music/*.mp3
-src/ui/assets/music/cafe-afternoon-glow.wav
+# Only explicitly included project audio; keep future personal imports out
+src/ui/assets/music/*
+!src/ui/assets/music/brown.wav
+!src/ui/assets/music/pink.wav
+!src/ui/assets/music/ocean.wav
+!src/ui/assets/music/cafe-afternoon-glow.wav
+!src/ui/assets/music/between-pages.mp3
+!src/ui/assets/music/forest-walk.mp3
+!src/ui/assets/music/night-lamp.mp3
+!src/ui/assets/music/glow-station.mp3
+!src/ui/assets/music/seaside-holiday.mp3
+!src/ui/assets/music/moonlit-garden.mp3
+!src/ui/assets/music/greenhouse.mp3
+!src/ui/assets/music/clouds.mp3
+!src/ui/assets/music/maple.mp3
+!src/ui/assets/music/space.mp3
+!src/ui/assets/music/bamboo.mp3

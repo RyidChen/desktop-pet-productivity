@@ -76,7 +76,7 @@ test('cafe selection persists independently of an imported music path', () => {
 
 test('all new tracks persist and reject unknown music sources', () => {
   const { FocusModel } = require('../src/model.cjs');
-  for (const musicSource of ['reading', 'night', 'forest', 'station', 'seaside', 'garden']) {
+  for (const musicSource of ['reading', 'night', 'forest', 'station', 'seaside', 'garden', 'greenhouse', 'clouds', 'maple', 'space', 'bamboo']) {
     const model = new FocusModel();
     model.dispatch('audioSettings', { key: 'musicSource', value: musicSource });
     assert.equal(new FocusModel(model.snapshot()).settings.musicSource, musicSource);
