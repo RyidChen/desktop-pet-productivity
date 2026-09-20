@@ -110,6 +110,8 @@ sprite.load('assets/mori-catgirl-atlas.png').then(async () => {
   try { await sprite.loadIdle('assets/mori-idle-atlas.png'); pet.dataset.idleReady = 'true'; }
   catch { pet.dataset.idleReady = 'false'; }
   assetsReady = true;
+  try { await sprite.loadRig('assets/mori-classic-rig.png'); pet.dataset.rigReady = 'true'; }
+  catch { pet.dataset.rigReady = 'false'; }
   await syncOutfit(state?.settings.outfit || 'classic');
   pet.dataset.ready = 'true'; draw(); requestAnimationFrame(animate);
 }).catch(() => { say('角色載入失敗，仍可按右下工具。', Infinity); pet.dataset.ready = 'error'; });

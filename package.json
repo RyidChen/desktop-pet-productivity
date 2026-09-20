@@ -1,6 +1,6 @@
 {
   "name": "mori-focus",
-  "version": "0.6.4",
+  "version": "0.7.3",
   "description": "森日 Mori — 桌面上的專注夥伴",
   "private": true,
   "main": "src/main.cjs",
