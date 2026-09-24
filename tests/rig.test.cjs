@@ -28,6 +28,24 @@ test('layered idle animates individual parts, stays still in calm mode and falls
     draw(1000); assert.ok(calls.some(c => c[0] === 'drawImage' && c[1] === 'fallback'));
   }
   sprite.outfit = 'classic';
+  sprite.readingRig = Object.fromEntries(['classic', 'cozy', 'outing'].map(outfit => [outfit, frame(`reading-${outfit}`)]));
+  sprite.readingHeads = { head: frame('reading-head'), closed: frame('reading-closed') };
+  for (const outfit of ['classic', 'cozy', 'outing']) {
+    sprite.outfit = outfit;
+    draw(1000, {}, 'read');
+    assert.equal(calls.filter(c => c[0] === 'drawImage').length, 5);
+    assert.ok(calls.some(c => c[0] === 'drawImage' && c[1] === `reading-${outfit}`));
+    assert.ok(calls.some(c => c[0] === 'drawImage' && c[1] === 'reading-head'));
+    assert.notEqual(draw(1000, {}, 'read'), draw(2000, {}, 'read'));
+    for (const pose of ['readBlink', 'readHappy']) {
+      draw(1000, {}, pose); assert.ok(calls.some(c => c[0] === 'drawImage' && c[1] === 'reading-closed'));
+    }
+    assert.equal(draw(1000, { calm: true }, 'read'), draw(2000, { calm: true }, 'read'));
+    assert.equal(draw(1000, { reducedMotion: true }, 'read'), draw(2000, { reducedMotion: true }, 'read'));
+  }
+  sprite.readingRig = null; draw(1000, {}, 'read');
+  assert.ok(calls.some(c => c[0] === 'drawImage' && c[1] === 'read'), 'missing seated layers retain original reading pose');
+  sprite.outfit = 'classic';
   sprite.rig = null; draw(1000); assert.ok(calls.some(c => c[0] === 'drawImage' && c[1] === 'fallback'));
 });
 

@@ -66,24 +66,31 @@ export class PetSprite {
     this.rig = await this.loadSheet(url, ['body', 'head', 'closed', 'earLeft', 'earRight', 'tail'], 3, 2,
       [[0, 0, 490, 576], [490, 0, 1014, 576], [1014, 0, 1536, 576], [0, 576, 512, 1024], [512, 576, 1024, 1024], [1024, 576, 1536, 1024]]);
   }
+  async loadReadingRig(url, headsUrl = 'assets/mori-reading-heads.png') {
+    const bodies = await this.loadSheet(url, ['classic', 'cozy', 'outing'], 3, 1);
+    const heads = await this.loadSheet(headsUrl, ['head', 'closed'], 2, 1);
+    this.readingHeads = heads;
+    this.readingRig = bodies;
+  }
   drawRig(pose, now, still, body = this.rig.body) {
     const c = this.context;
-    const breath = still ? 0 : Math.sin(now / 700);
-    const look = still ? 0 : pose === 'lookLeft' ? -1 : pose === 'lookRight' ? 1 : this.gaze;
-    const tilt = still ? 0 : look * 0.07 + Math.sin(now / 1800) * 0.025 + (['happy', 'curious'].includes(pose) ? 0.09 : 0);
+    const reading = pose.startsWith('read');
+    const breath = still ? 0 : Math.sin(now / (reading ? 1200 : 700));
+    const look = still || reading ? 0 : pose === 'lookLeft' ? -1 : pose === 'lookRight' ? 1 : this.gaze;
+    const tilt = still ? 0 : look * 0.07 + Math.sin(now / (reading ? 2400 : 1800)) * (reading ? 0.012 : 0.025) + (['happy', 'curious'].includes(pose) ? 0.09 : 0);
     const part = (name, x, y, height, angle = 0, originX = 0.5, originY = 1) => {
-      const f = name === 'body' ? body : this.rig[name], width = height * f.width / f.height;
+      const f = name === 'body' ? body : (reading && this.readingHeads?.[name]) || this.rig[name], width = height * f.width / f.height;
       c.save(); c.translate(x, y); c.rotate(angle);
       c.drawImage(f.image, f.x, f.y, f.width, f.height, -width * originX, -height * originY, width, height); c.restore();
     };
-    part('tail', 22, -24, 65, still ? 0 : Math.sin(now / 820) * 0.24, 0.12, 0.88);
-    part('body', 0, 0, 94 + breath * 0.7);
-    c.save(); c.translate(look * 2, -89 - breath); c.rotate(tilt);
-    const twitch = still ? 0 : Math.pow(Math.max(0, Math.sin(now / 2700)), 12) * Math.sin(now / 105) * 0.10;
+    part('tail', reading ? 29 : 22, reading ? -15 : -24, reading ? 56 : 65, still ? 0 : Math.sin(now / (reading ? 1600 : 820)) * (reading ? 0.13 : 0.24), 0.12, 0.88);
+    part('body', 0, 0, (reading ? 65 : 94) + breath * 0.7);
+    c.save(); c.translate(look * 2, (reading ? -54 : -89) - breath); c.rotate(tilt);
+    const twitch = still ? 0 : Math.pow(Math.max(0, Math.sin(now / 2700)), 12) * Math.sin(now / 105) * (reading ? 0.05 : 0.10);
     // Bury the ear roots beneath the hair silhouette, including at maximum twitch.
-    part('earLeft', -28, -61, 30, -twitch, 0.5, 0.9);
-    part('earRight', 28, -61, 30, twitch * 0.7, 0.5, 0.9);
-    part(['blink', 'happy'].includes(pose) ? 'closed' : 'head', 0, 4, 92);
+    part('earLeft', -28, -61, reading ? 28 : 30, -twitch, 0.5, 0.9);
+    part('earRight', 28, -61, reading ? 28 : 30, twitch * 0.7, 0.5, 0.9);
+    part(['blink', 'happy', 'readBlink', 'readHappy'].includes(pose) ? 'closed' : 'head', 0, 4, 92);
     c.restore();
   }
   async setOutfit(outfit) {
@@ -144,6 +151,7 @@ export class PetSprite {
     const scale = frame.scale || this.scale;
     const context = this.context;
     context.resetTransform(); context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high';
     context.setTransform(this.canvas.width / 220, 0, 0, this.canvas.height / 190, 0, 0);
     context.translate(110, 181);
     this.gaze += ((calm || reducedMotion ? 0 : Math.max(-1, Math.min(1, gaze))) - this.gaze) * 0.1;
@@ -156,8 +164,9 @@ export class PetSprite {
         context.scale(1 + squash * 0.05, 1 - squash * 0.08);
       }
     }
-    const rigBody = this.outfit === 'classic' ? this.rig?.body : this.outfits.get(this.outfit)?.rigBody;
-    if (this.rig && rigBody && !transitioning && ['idle', 'blink', 'happy', 'curious', 'lookLeft', 'lookRight'].includes(pose)) {
+    const reading = ['read', 'readBlink', 'readHappy'].includes(pose);
+    const rigBody = reading ? this.readingRig?.[this.outfit] : this.outfit === 'classic' ? this.rig?.body : this.outfits.get(this.outfit)?.rigBody;
+    if (this.rig && rigBody && !transitioning && (reading || ['idle', 'blink', 'happy', 'curious', 'lookLeft', 'lookRight'].includes(pose))) {
       context.scale(0.94, 0.94);
       this.drawRig(pose, now, calm || reducedMotion, rigBody);
       return;

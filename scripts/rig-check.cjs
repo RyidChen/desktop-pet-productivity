@@ -3,6 +3,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '..');
+const reading = process.env.CHECK_READING === '1';
+const prefix = reading ? 'reading-rig' : 'rig';
 (async () => {
   const env = { ...process.env, MORI_DATA_DIR: path.join(root, '.test-data', `rig-${Date.now()}`) };
   for (const key of Object.keys(env)) if (key.toUpperCase() === 'ELECTRON_RUN_AS_NODE') delete env[key];
@@ -14,22 +16,25 @@ const root = path.resolve(__dirname, '..');
     let pet;
     for (let i = 0; i < 100 && !pet; i++) { pet = app.windows().find(p => p.url().endsWith('pet.html')); if (!pet) await new Promise(r => setTimeout(r, 50)); }
     await pet.waitForFunction(() => document.querySelector('#pet').dataset.rigReady === 'true');
-    const result = await pet.evaluate(async () => {
+    if (reading) await pet.waitForFunction(() => document.querySelector('#pet').dataset.readingRigReady === 'true');
+    const result = await pet.evaluate(async reading => {
+      const idlePose = reading ? 'read' : 'idle', blinkPose = reading ? 'readBlink' : 'blink', happyPose = reading ? 'readHappy' : 'happy';
       const { PetSprite } = await import('./pet-sprite.mjs');
       const canvas = document.createElement('canvas'); canvas.width = 440; canvas.height = 380;
       const sprite = new PetSprite(canvas);
       await sprite.load('assets/mori-catgirl-atlas.png');
       await sprite.loadRig('assets/mori-classic-rig.png');
-      sprite.draw('idle', 1000);
+      if (reading) await sprite.loadReadingRig('assets/mori-reading-bodies.png');
+      sprite.draw(idlePose, 1000);
       const first = canvas.toDataURL();
-      sprite.draw('idle', 2000);
+      sprite.draw(idlePose, 2000);
       const second = canvas.toDataURL();
-      sprite.draw('idle', 1000, { reducedMotion: true }); const still = canvas.toDataURL();
-      sprite.draw('idle', 2000, { reducedMotion: true });
+      sprite.draw(idlePose, 1000, { reducedMotion: true }); const still = canvas.toDataURL();
+      sprite.draw(idlePose, 2000, { reducedMotion: true });
       const fixed = still === canvas.toDataURL();
       const gallery = document.createElement('canvas'); gallery.width = 880; gallery.height = 760;
       const gc = gallery.getContext('2d');
-      const poses = ['idle', 'blink', 'happy', 'lookLeft'];
+      const poses = [idlePose, blinkPose, happyPose, reading ? idlePose : 'lookLeft'];
       const headComponents = [];
       for (let i = 0; i < poses.length; i++) {
         sprite.draw(poses[i], 4100 + i * 140, { gaze: i % 2 ? 1 : -1 });
@@ -57,9 +62,9 @@ const root = path.resolve(__dirname, '..');
       const wc = wardrobe.getContext('2d'), outfitReady = [];
       for (const [i, outfit] of ['classic', 'cozy', 'outing'].entries()) {
         await sprite.setOutfit(outfit);
-        outfitReady.push(outfit === 'classic' || Boolean(sprite.outfits.get(outfit).rigBody));
+        outfitReady.push(reading ? Boolean(sprite.readingRig[outfit]) : outfit === 'classic' || Boolean(sprite.outfits.get(outfit).rigBody));
         for (let row = 0; row < 2; row++) {
-          sprite.draw(row ? 'happy' : 'idle', 4200 + row * 100, { gaze: row ? 1 : -1 });
+          sprite.draw(row ? happyPose : idlePose, 4200 + row * 100, { gaze: row ? 1 : -1 });
           wc.fillStyle = row ? '#333840' : '#faf8f1'; wc.fillRect(i * 440, row * 380, 440, 380);
           wc.drawImage(canvas, i * 440, row * 380);
         }
@@ -77,7 +82,7 @@ const root = path.resolve(__dirname, '..');
           const t = performance.now() - started;
           const outfit = t < 2000 ? 'classic' : t < 4000 ? 'cozy' : 'outing';
           if (sprite.outfit !== outfit) await sprite.setOutfit(outfit);
-          sprite.draw(t > 3200 && t < 4400 ? 'happy' : t > 2000 && t < 2180 ? 'blink' : 'idle', t, { gaze: Math.sin(t / 1200) });
+          sprite.draw(t > 3200 && t < 4400 ? happyPose : t > 2000 && t < 2180 ? blinkPose : idlePose, t, { gaze: Math.sin(t / 1200) });
           ctx.fillStyle = '#f5f3eb'; ctx.fillRect(0, 0, 440, 380); ctx.drawImage(canvas, 0, 0);
           if (t < 6000) requestAnimationFrame(frame); else resolve();
         } frame();
@@ -85,14 +90,26 @@ const root = path.resolve(__dirname, '..');
       recorder.stop(); await stopped; stream.getTracks().forEach(t => t.stop());
       const video = await new Promise(resolve => { const reader = new FileReader(); reader.onload = () => resolve(reader.result.split(',')[1]); reader.readAsDataURL(new Blob(chunks, { type: 'video/webm' })); });
       return { first, second, fixed, video, gallery: gallery.toDataURL(), headComponents, wardrobe: wardrobe.toDataURL(), outfitReady };
-    });
+    }, reading);
     assert.notEqual(result.first, result.second); assert.equal(result.fixed, true);
-    fs.writeFileSync(path.join(root, 'artifacts', 'rig-ear-check.png'), Buffer.from(result.gallery.split(',')[1], 'base64'));
+    fs.mkdirSync(path.join(root, 'artifacts'), { recursive: true });
+    fs.writeFileSync(path.join(root, 'artifacts', `${prefix}-ear-check.png`), Buffer.from(result.gallery.split(',')[1], 'base64'));
     assert.deepEqual(result.headComponents, [1, 1, 1, 1], 'ears stay connected to the hair silhouette');
     assert.deepEqual(result.outfitReady, [true, true, true], 'each outfit has its own layered body');
-    fs.writeFileSync(path.join(root, 'artifacts', 'rig-wardrobe.png'), Buffer.from(result.wardrobe.split(',')[1], 'base64'));
-    fs.writeFileSync(path.join(root, 'artifacts', 'rig-idle.png'), Buffer.from(result.first.split(',')[1], 'base64'));
-    fs.writeFileSync(path.join(root, 'artifacts', 'rig-preview.webm'), Buffer.from(result.video, 'base64'));
-    console.log('PASS: layered renderer loads, moves, respects reduced motion; preview recorded.');
+    fs.writeFileSync(path.join(root, 'artifacts', `${prefix}-wardrobe.png`), Buffer.from(result.wardrobe.split(',')[1], 'base64'));
+    fs.writeFileSync(path.join(root, 'artifacts', `${prefix}-idle.png`), Buffer.from(result.first.split(',')[1], 'base64'));
+    fs.writeFileSync(path.join(root, 'artifacts', `${prefix}-preview.webm`), Buffer.from(result.video, 'base64'));
+    if (reading) {
+      const panel = app.windows().find(p => p.url().endsWith('panel.html'));
+      const actions = await panel.evaluate(async () => [
+        await window.mori.act('companionSettings', { key: 'outfit', value: 'outing' }),
+        await window.mori.act('start'),
+      ]);
+      assert.ok(actions.every(action => action.ok), 'panel can start focus and change outfit');
+      await pet.waitForFunction(() => document.querySelector('#pet').dataset.outfit === 'outing' && document.querySelector('#pet').dataset.pose === 'read' && !document.querySelector('#pet-timer').hidden);
+      assert.equal(await pet.evaluate(async () => (await window.mori.getState()).timer.running), true);
+      await pet.screenshot({ path: path.join(root, 'artifacts', 'reading-rig-window.png') });
+    }
+    console.log(`PASS: ${prefix} loads, moves, respects reduced motion; preview recorded.`);
   } finally { await app.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
