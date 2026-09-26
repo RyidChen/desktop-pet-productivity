@@ -22,6 +22,8 @@ class FocusModel {
       musicSource: ['local', 'cafe', 'reading', 'night', 'forest', 'station', 'seaside', 'garden', 'greenhouse', 'clouds', 'maple', 'space', 'bamboo'].includes(settings.musicSource) ? settings.musicSource : 'builtin',
       presence: ['companion', 'focus', 'quiet'].includes(settings.presence) ? settings.presence : 'companion',
       panelPinned: settings.panelPinned === true,
+      petSize: ['small', 'large'].includes(settings.petSize) ? settings.petSize : 'medium',
+      positionLocked: settings.positionLocked === true,
       guideSeen: settings.guideSeen === true,
       miniTimer: settings.miniTimer !== false,
       outfit: ['cozy', 'outing'].includes(settings.outfit) ? settings.outfit : 'classic',
@@ -174,7 +176,12 @@ class FocusModel {
         break;
       }
       case 'companionSettings':
-        if (!payload || !['presence', 'panelPinned', 'outfit', 'guideSeen', 'miniTimer'].includes(payload.key)) throw new Error('陪伴設定無效。');
+        if (!payload || !['presence', 'panelPinned', 'outfit', 'guideSeen', 'miniTimer', 'petSize', 'positionLocked'].includes(payload.key)) throw new Error('陪伴設定無效。');
+        if (payload.key === 'petSize') {
+          if (!['small', 'medium', 'large'].includes(payload.value)) throw new Error('角色大小無效。');
+          this.settings.petSize = payload.value;
+          break;
+        }
         if (payload.key === 'outfit') {
           if (!['classic', 'cozy', 'outing'].includes(payload.value)) throw new Error('服裝選項無效。');
           this.settings.outfit = payload.value;

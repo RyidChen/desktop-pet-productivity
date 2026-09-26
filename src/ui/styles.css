@@ -97,3 +97,12 @@ input[type=range]{height:26px;margin:4px 0 0;background:transparent;border-radiu
 #music-source,#background-source{width:100%;max-width:none;min-width:0;min-height:36px;padding:6px 8px;font-size:12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)}
 #music-title{max-width:none;white-space:normal;overflow-wrap:anywhere;overflow:visible;text-overflow:clip;font-size:12px;line-height:1.6;color:var(--muted)}
 .sound-row>.sound-icon,.sound-row>.sound-toggle{align-self:flex-start;margin-top:23px}
+
+/* Scale only the character: speech, timer and leaf stay readable. */
+.pet-page{width:100vw;height:100vh}
+.pet-page #pet{left:50%;transform:translateX(-50%)}
+.pet-page[data-pet-size=small] #pet,.pet-page[data-pet-size=small] #pet-sprite{width:176px;height:152px}
+.pet-page[data-pet-size=large] #pet,.pet-page[data-pet-size=large] #pet-sprite{width:264px;height:228px}
+#pet[data-locked=true],#pet[data-locked=true]:active{cursor:pointer}
+#pet-size{font:inherit;min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);padding:6px}
+#recover-pet{margin-top:12px}.desktop-help{margin:6px 0 14px}

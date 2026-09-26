@@ -20,6 +20,7 @@ fs.copyFileSync(path.join(root, 'docs', 'verification.md'), path.join(target, 'd
 fs.copyFileSync(path.join(root, 'docs', 'reading-assets.md'), path.join(target, 'docs', 'reading-assets.md'));
 fs.copyFileSync(path.join(root, 'docs', 'character-assets.md'), path.join(target, 'docs', 'character-assets.md'));
 fs.copyFileSync(path.join(root, 'docs', 'layered-animation.md'), path.join(target, 'docs', 'layered-animation.md'));
+fs.copyFileSync(path.join(root, 'docs', 'focus-motion-assets.md'), path.join(target, 'docs', 'focus-motion-assets.md'));
 fs.copyFileSync(path.join(root, 'docs', 'cafe-audio.md'), path.join(target, 'docs', 'cafe-audio.md'));
 fs.copyFileSync(path.join(root, 'docs', 'background-audio.md'), path.join(target, 'docs', 'background-audio.md'));
 fs.writeFileSync(path.join(target, 'Start Mori.cmd'), '@echo off\r\nset ELECTRON_RUN_AS_NODE=\r\nstart "" "%~dp0Mori.exe"\r\n');

@@ -53,11 +53,15 @@ function react(pose, duration) {
   mood.lastActive = Date.now(); mood.reaction = pose; mood.reactionUntil = Date.now() + duration;
 }
 function updateState(s) {
+  if (down && (s.settings.petSize !== state?.settings.petSize || s.settings.positionLocked !== state?.settings.positionLocked)) release({ pointerId: down.id }, true);
   if (s.settings.presence !== state?.settings.presence) { noticeUntil = 0; mood.reaction = ''; hovered = false; clearTimeout(greetingTimer); interaction = ''; }
   if (s.timer.mode !== mood.timer.mode || s.timer.running !== mood.timer.running) {
     mood.lastActive = Date.now(); mood.phaseSince = Date.now();
   }
   state = s; mood.timer = s.timer;
+  document.body.dataset.petSize = s.settings.petSize;
+  pet.dataset.locked = String(s.settings.positionLocked);
+  pet.title = s.settings.positionLocked ? '位置已鎖定 · 摸摸頭 · 單擊打招呼 · 雙擊開工具' : '摸摸頭 · 單擊打招呼 · 雙擊開工具 · 拖曳搬家';
   updateTimerVisibility();
   const seconds = Math.ceil(s.timer.remaining / 1000);
   document.querySelector('#pet-time').textContent = `${s.timer.running ? s.timer.mode === 'focus' ? '專注' : '休息' : '暫停'} ${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
@@ -71,6 +75,10 @@ function updateState(s) {
       say(previous ? `上次一起專注 ${previous.minutes < 1 ? '不到 1' : previous.minutes} 分鐘。歡迎回來。` : '我是森森。按葉子，一起開始吧。', 5500);
     }
   }
+}
+function spritePoint(x, y) {
+  const bounds = sprite.canvas.getBoundingClientRect();
+  return { x: (x - bounds.left) * 220 / bounds.width + 10, y: (y - bounds.top) * 190 / bounds.height + 40 };
 }
 function syncHit(x, y, force = false) {
   const element = document.elementFromPoint(x, y);
@@ -86,7 +94,7 @@ function draw() {
   mood.idlePose = idle.update(now, !mood.calm && !reading && !mood.held && !down && !hovered && now >= mood.reactionUntil && now - mood.lastActive < 58000);
   const pose = resolvePose(mood, now);
   pet.dataset.pose = pose;
-  sprite.draw(pose, now, { reducedMotion: motion.matches, calm: state?.settings.presence !== 'companion', landedAt, grabPoint, gaze: hovered && pointer ? (pointer.x - 120) / 80 : 0, interaction, interactionSince });
+  sprite.draw(pose, now, { reducedMotion: motion.matches, calm: state?.settings.presence !== 'companion', landedAt, grabPoint, gaze: hovered && pointer ? (spritePoint(pointer.x, pointer.y).x - 120) / 80 : 0, interaction, interactionSince });
   if (pointer && !down) syncHit(pointer.x, pointer.y);
   if (updateTimerVisibility(now)) return;
   if (state?.settings.presence === 'quiet') { bubble.hidden = true; return; }
@@ -114,6 +122,10 @@ sprite.load('assets/mori-catgirl-atlas.png').then(async () => {
   catch { pet.dataset.rigReady = 'false'; }
   try { await sprite.loadReadingRig('assets/mori-reading-bodies.png'); pet.dataset.readingRigReady = 'true'; }
   catch { pet.dataset.readingRigReady = 'false'; }
+    try { await sprite.loadActivityRig(); pet.dataset.activityRigReady = 'true'; }
+    catch { pet.dataset.activityRigReady = 'false'; }
+    try { await sprite.loadFocusRig(); pet.dataset.focusRigReady = 'true'; }
+    catch { pet.dataset.focusRigReady = 'false'; }
   await syncOutfit(state?.settings.outfit || 'classic');
   pet.dataset.ready = 'true'; draw(); requestAnimationFrame(animate);
 }).catch(() => { say('角色載入失敗，仍可按右下工具。', Infinity); pet.dataset.ready = 'error'; });
@@ -141,7 +153,7 @@ document.addEventListener('pointermove', event => {
   const now = Date.now();
   if (hit && sprite.hit(pointer.x, pointer.y)) {
     mood.lastActive = now;
-    if (pointer.y < 115) {
+    if (spritePoint(pointer.x, pointer.y).y < 115) {
       if (lastHeadPoint && now - lastHeadPoint.time < 650) patDistance += Math.hypot(pointer.x - lastHeadPoint.x, pointer.y - lastHeadPoint.y);
       else patDistance = 0;
       lastHeadPoint = { ...pointer, time: now };
@@ -154,12 +166,13 @@ document.addEventListener('pointermove', event => {
 pet.addEventListener('pointerdown', event => {
   if (event.button !== 0 || !sprite.hit(event.clientX, event.clientY)) return;
   clearTimeout(greetingTimer);
-  mood.lastActive = Date.now(); down = { x: event.screenX, y: event.screenY }; dragged = false;
-  grabPoint = { x: event.clientX - 120, y: event.clientY - 221 };
-  pet.setPointerCapture(event.pointerId); window.mori.drag('begin');
+  mood.lastActive = Date.now(); down = { x: event.screenX, y: event.screenY, id: event.pointerId }; dragged = false;
+  const point = spritePoint(event.clientX, event.clientY);
+  grabPoint = { x: point.x - 120, y: point.y - 221 };
+  pet.setPointerCapture(event.pointerId); if (!state?.settings.positionLocked) window.mori.drag('begin');
 });
 pet.addEventListener('pointermove', event => {
-  if (!down) return;
+  if (!down || state?.settings.positionLocked) return;
   if (Math.hypot(event.screenX - down.x, event.screenY - down.y) > 5) {
     if (!dragged) say('咦，要帶我去哪裡？', 1200);
     dragged = true; mood.held = true; mood.reaction = '';

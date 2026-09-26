@@ -57,12 +57,16 @@
   <label class="outfit-label" for="outfit">今天穿什麼<select id="outfit"><option value="classic">經典森綠服</option><option value="cozy">奶油居家服</option><option value="outing">午後外出服</option></select></label>
   <div class="character-interactions"><button class="small-button" data-pet-interaction="snack">小點心</button><button class="small-button" data-pet-interaction="play">逗逗森森</button><button class="small-button" data-pet-interaction="rest" title="讓森森小憩，計時繼續">休息一下</button></div>
   <p class="helper-text">摸摸頭也會有回應。森森小憩時，計時會繼續。</p>
+  <label class="outfit-label" for="pet-size">桌邊角色大小<select id="pet-size"><option value="small">小</option><option value="medium">中（預設）</option><option value="large">大</option></select></label>
+  <label class="mini-option"><input id="position-locked" type="checkbox">鎖定位置（仍可摸頭與點擊）</label>
+  <button id="recover-pet" class="small-button" type="button">找回森森到目前螢幕</button>
+  <p class="helper-text desktop-help">找回時會顯示森森，並離開隱藏角色模式。</p>
   <p id="character-feedback" role="status">森森準備好陪你了。</p>
 </dialog>
 <dialog id="guide-dialog" aria-labelledby="guide-heading">
   <div class="character-heading"><h2 id="guide-heading">和森森一起開始</h2><button id="guide-close" class="small-button">略過</button></div>
   <p>不用一次做很多，先完成一小步就好。</p>
-  <ol class="guide-steps"><li><strong>開啟專注小屋</strong><span>按森森右下的葉子，或雙擊角色。</span></li><li><strong>放下一件小事</strong><span>輸入待辦後，點它的名稱選為目前任務；鉛筆可以修改文字。</span></li><li><strong>先做 5 分鐘</strong><span>按「先做 5 分鐘就好」。結束後由你決定何時休息。</span></li><li><strong>隨時找回森森</strong><span>按 Ctrl+Alt+M 或到系統匣點小貓。隱藏角色與提醒時，請在面板切回陪伴。</span></li></ol>
+  <ol class="guide-steps"><li><strong>開啟專注小屋</strong><span>按森森右下的葉子，或雙擊角色。</span></li><li><strong>放下一件小事</strong><span>輸入待辦後，點它的名稱選為目前任務；鉛筆可以修改文字。</span></li><li><strong>先做 5 分鐘</strong><span>按「先做 5 分鐘就好」。結束後由你決定何時休息。</span></li><li><strong>隨時找回森森</strong><span>按 Ctrl+Alt+M 顯示角色，或從衣櫥、系統匣選「找回森森到目前螢幕」。</span></li></ol>
   <label class="mini-option"><input id="mini-timer-setting" type="checkbox" checked>顯示桌邊倒數與暫停按鈕</label>
   <p class="guide-note">收合面板後，計時與音樂繼續。資料保存在這台電腦，不需要帳號。右上「使用說明」可重看。</p>
   <button id="guide-done" class="primary-button">知道了，開始吧</button>

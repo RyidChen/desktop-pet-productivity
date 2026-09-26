@@ -72,13 +72,29 @@ function togglePet() {
     pet.showInactive(); save(); broadcast();
   }
 }
+function petDimensions() {
+  const scale = { small: 0.8, medium: 1, large: 1.2 }[model.settings.petSize];
+  return { width: Math.max(240, Math.round(220 * scale + 20)), height: Math.round(190 * scale + 40) };
+}
+function refreshHit() {
+  const cursor = screen.getCursorScreenPoint(), bounds = pet.getBounds();
+  pet.webContents.send('hit-refresh', { x: cursor.x - bounds.x, y: cursor.y - bounds.y });
+}
+function recoverPet() {
+  dragStart = null;
+  const work = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea;
+  const size = petDimensions();
+  pet.setBounds({ ...clamp({ x: work.x + work.width - size.width - 24, y: work.y + work.height - size.height - 16, ...size }, work), ...size });
+  if (model.settings.presence === 'quiet') model.settings.presence = 'companion';
+  constrainPet(); pet.showInactive(); save(); broadcast();
+}
 function constrainPet() {
-  const bounds = pet.getBounds();
+  const bounds = { ...pet.getBounds(), ...petDimensions() };
   const work = screen.getDisplayMatching(bounds).workArea;
   // Supplying dimensions prevents Windows fractional-DPI rounding from accumulating on each move.
-  pet.setBounds({ ...clamp(bounds, work), width: 240, height: 230 });
+  pet.setBounds({ ...clamp(bounds, work), ...petDimensions() });
   model.position = { x: pet.getBounds().x, y: pet.getBounds().y };
-  placePanel();
+  placePanel(); refreshHit();
 }
 function secureWindow(win, file) {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -103,7 +119,7 @@ if (gotLock) app.whenReady().then(async () => {
   const work = screen.getPrimaryDisplay().workArea;
   const initial = model.position || { x: work.x + work.width - 280, y: work.y + work.height - 248 };
   const common = { frame: false, transparent: true, resizable: false, maximizable: false, fullscreenable: false, skipTaskbar: true, alwaysOnTop: true, show: false, backgroundColor: '#00000000', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false } };
-  pet = new BrowserWindow({ ...common, ...initial, width: 240, height: 230, title: '森日 · 桌寵', hasShadow: false });
+  pet = new BrowserWindow({ ...common, ...initial, ...petDimensions(), title: '森日 · 桌寵', hasShadow: false });
   panel = new BrowserWindow({ ...common, alwaysOnTop: model.settings.panelPinned, width: 380, height: 760, title: '森日 · 專注小屋', hasShadow: false });
 
   function authorized(event, role) {
@@ -136,6 +152,7 @@ if (gotLock) app.whenReady().then(async () => {
       model.dispatch(action, payload);
       if (action === 'companionSettings') {
         panel.setAlwaysOnTop(model.settings.panelPinned);
+        if (payload.key === 'petSize' || payload.key === 'positionLocked') { dragStart = null; constrainPet(); }
         if (payload.key === 'presence') model.settings.presence === 'quiet' ? pet.hide() : pet.showInactive();
       }
       save(); broadcast();
@@ -150,6 +167,7 @@ if (gotLock) app.whenReady().then(async () => {
       save(); broadcast();
     }
     else if (action === 'toggle') panel.isVisible() ? panel.hide() : showPanel();
+    else if (action === 'recover') { authorized(event, 'panel'); recoverPet(); }
     else if (action === 'collapse') panel.hide();
     else if (action === 'hide') togglePet();
     else if (action === 'finish') {
@@ -166,12 +184,14 @@ if (gotLock) app.whenReady().then(async () => {
   ipcMain.on('drag', (event, phase) => {
     try {
       authorized(event, 'pet');
+      if (model.settings.positionLocked) return;
       if (phase === 'begin') {
         dragStart = { cursor: screen.getCursorScreenPoint(), bounds: pet.getBounds() };
         pet.setIgnoreMouseEvents(false);
       } else if (phase === 'move' && dragStart) {
         const cursor = screen.getCursorScreenPoint();
-        pet.setBounds({ x: dragStart.bounds.x + cursor.x - dragStart.cursor.x, y: dragStart.bounds.y + cursor.y - dragStart.cursor.y, width: 240, height: 230 });
+        const bounds = { x: dragStart.bounds.x + cursor.x - dragStart.cursor.x, y: dragStart.bounds.y + cursor.y - dragStart.cursor.y, ...petDimensions() };
+        pet.setBounds({ ...clamp(bounds, screen.getDisplayNearestPoint(cursor).workArea), ...petDimensions() });
         if (panel.isVisible()) placePanel();
       } else if (phase === 'end' && dragStart) {
         dragStart = null;
@@ -221,6 +241,7 @@ if (gotLock) app.whenReady().then(async () => {
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: '開啟專注小屋', click: showPanel },
     { label: '顯示／隱藏森森（Ctrl+Alt+M）', click: togglePet },
+    { label: '找回森森到目前螢幕', click: recoverPet },
     { type: 'separator' }, { label: '結束森日', click: () => app.quit() },
   ]));
   tray.on('click', showPanel);

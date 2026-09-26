@@ -17,15 +17,19 @@ const root = path.resolve(__dirname, '..');
     const result = await pet.evaluate(async () => {
       const { PetSprite } = await import('./pet-sprite.mjs');
       const sprites = [], checks = [];
-      const poses = ['sleep', 'stretch', 'read', 'readBlink', 'readHappy', 'yawn', 'snack', 'wave'];
+      const poses = ['sleep', 'stretch', 'held', 'read', 'readBlink', 'readHappy', 'yawn', 'snack', 'wave'];
       for (const outfit of ['classic', 'cozy', 'outing']) {
         const canvas = document.createElement('canvas'); canvas.width = 440; canvas.height = 380;
         const sprite = new PetSprite(canvas);
         await sprite.load('assets/mori-catgirl-atlas.png');
         await sprite.loadReading('assets/mori-reading-atlas.png');
         await sprite.loadIdle('assets/mori-idle-atlas.png');
+        await sprite.loadRig('assets/mori-classic-rig.png');
+        await sprite.loadReadingRig('assets/mori-reading-bodies.png');
+        await sprite.loadActivityRig();
         await sprite.setOutfit(outfit);
-        const draw = (pose, time, options) => { sprite.family = ''; sprite.draw(pose, time, options); return canvas.toDataURL(); };
+        if (!sprite.activityRigs[outfit]) throw new Error(`Missing activity layers: ${outfit}`);
+        const draw = (pose, time, options) => { sprite.family = ''; sprite.rigLayout = null; sprite.rigPose = ''; sprite.draw(pose, time, options); return canvas.toDataURL(); };
         for (const pose of poses) {
           const moving = draw(pose, 1000) !== draw(pose, 2400);
           const calm = draw(pose, 1000, { calm: true }) === draw(pose, 2400, { calm: true });
@@ -37,11 +41,11 @@ const root = path.resolve(__dirname, '..');
         }
         sprites.push(sprite);
       }
-      const gallery = document.createElement('canvas'); gallery.width = 1320; gallery.height = 760;
+      const gallery = document.createElement('canvas'); gallery.width = 1320; gallery.height = 2280;
       const gc = gallery.getContext('2d');
-      for (let row = 0; row < 2; row++) for (const [i, sprite] of sprites.entries()) {
-        sprite.family = ''; sprite.draw(row ? 'stretch' : 'sleep', 1600);
-        gc.fillStyle = row ? '#333840' : '#faf8f1'; gc.fillRect(i * 440, row * 380, 440, 380);
+      for (let row = 0; row < 6; row++) for (const [i, sprite] of sprites.entries()) {
+        sprite.family = ''; sprite.rigLayout = null; sprite.rigPose = ''; sprite.draw(['sleep','stretch','held','wave','snack','yawn'][row], 1600);
+        gc.fillStyle = row % 2 ? '#333840' : '#faf8f1'; gc.fillRect(i * 440, row * 380, 440, 380);
         gc.drawImage(sprite.canvas, i * 440, row * 380);
       }
       const preview = document.createElement('canvas'); preview.width = 1320; preview.height = 400;
@@ -50,7 +54,7 @@ const root = path.resolve(__dirname, '..');
       recorder.ondataavailable = e => chunks.push(e.data);
       const stopped = new Promise(resolve => recorder.onstop = resolve);
       recorder.start();
-      const sequence = [['sleep', '睡覺／休息'], ['stretch', '伸懶腰'], ['read', '閱讀'], ['yawn', '打哈欠'], ['snack', '吃點心'], ['wave', '打招呼']];
+      const sequence = [['sleep', '睡覺／休息'], ['stretch', '伸懶腰'], ['read', '閱讀'], ['held', '拖曳'], ['snack', '吃點心'], ['wave', '打招呼']];
       const started = performance.now();
       await new Promise(resolve => {
         function frame() {
@@ -85,6 +89,6 @@ const root = path.resolve(__dirname, '..');
     fs.writeFileSync(path.join(root, 'artifacts', 'activity-check.json'), JSON.stringify(result.checks, null, 2));
     fs.writeFileSync(path.join(root, 'artifacts', 'activity-gallery.png'), Buffer.from(result.gallery, 'base64'));
     fs.writeFileSync(path.join(root, 'artifacts', 'activity-preview.webm'), Buffer.from(result.video, 'base64'));
-    console.log('PASS: 24 outfit/pose combinations animate, stay still in calm/reduced motion, and remain inside the canvas.');
+    console.log('PASS: 27 outfit/pose combinations animate, stay still in calm/reduced motion, and remain inside the canvas.');
   } finally { await app.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

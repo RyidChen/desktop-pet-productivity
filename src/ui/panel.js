@@ -19,6 +19,13 @@ async function dismissGuide() {
 $('#guide-close').addEventListener('click', dismissGuide);
 $('#guide-done').addEventListener('click', dismissGuide);
 $('#guide-dialog').addEventListener('cancel', event => { event.preventDefault(); dismissGuide(); });
+$('#pet-size').addEventListener('change', async () => {
+  if (!await act('companionSettings', { key: 'petSize', value: $('#pet-size').value })) $('#pet-size').value = state.settings.petSize;
+});
+$('#position-locked').addEventListener('change', async () => {
+  if (!await act('companionSettings', { key: 'positionLocked', value: $('#position-locked').checked })) $('#position-locked').checked = state.settings.positionLocked;
+});
+$('#recover-pet').addEventListener('click', () => window.mori.windowAction('recover').catch(() => error('暫時無法找回森森，請從系統匣再試一次。')));
 $('#mini-timer-setting').addEventListener('change', async () => {
   if (!await act('companionSettings', { key: 'miniTimer', value: $('#mini-timer-setting').checked })) $('#mini-timer-setting').checked = state.settings.miniTimer;
 });
@@ -117,6 +124,8 @@ function render(s) {
   const first = !state;
   const priorError = state?.errorMessage;
   state = s;
+  $('#pet-size').value = s.settings.petSize;
+  $('#position-locked').checked = s.settings.positionLocked;
   $('#mini-timer-setting').checked = s.settings.miniTimer;
   if (first && !s.settings.guideSeen) $('#guide-dialog').showModal();
   for (const button of document.querySelectorAll('[data-outfit]')) button.setAttribute('aria-pressed', String(button.dataset.outfit === s.settings.outfit));

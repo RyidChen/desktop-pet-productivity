@@ -21,6 +21,7 @@ const root = path.resolve(__dirname, '..');
     assert.ok(panel && pet);
     await pet.waitForFunction(() => document.querySelector('#pet').dataset.ready === 'true');
     assert.equal(await pet.locator('#pet').getAttribute('data-idle-ready'), 'true');
+    assert.equal(await pet.locator('#pet').getAttribute('data-focus-rig-ready'), 'true');
     await panel.waitForSelector('#character-toggle');
     await panel.evaluate(async () => { await window.mori.act('companionSettings', { key: 'guideSeen', value: true }); document.querySelector('#guide-dialog')?.close(); });
     await app.evaluate(({BrowserWindow}) => BrowserWindow.getAllWindows().forEach(w => w.show()));
